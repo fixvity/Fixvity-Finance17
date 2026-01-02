@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Loan Calculator</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --primary:#2563eb;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5e7eb;
+  --radius:14px;
+  --shadow:0 12px 30px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+}
+h1{
+  text-align:center;
+  margin:24px 0;
+  color:var(--primary);
+}
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:16px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:24px;
+}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px;
+}
+.section{margin-bottom:18px}
+.section h3{
+  margin:0 0 10px;
+  font-size:16px;
+  color:var(--primary);
+}
+label{
+  font-size:12px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+}
+input,select{
+  width:100%;
+  padding:11px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+button{
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.primary{background:var(--primary);color:#fff}
+.secondary{background:#eef2ff;margin-top:10px}
+
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:16px;
+}
+.result{
+  background:#f8fafc;
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+}
+.result b{font-size:18px}
+.result small{display:block;color:var(--muted);font-size:12px}
+
+.chart-wrap{height:260px;margin-top:12px}
+
+.table-wrap{
+  margin-top:16px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.table-wrap table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.table-wrap thead{background:#f1f5f9}
+.table-wrap th,td{
+  padding:8px;
+  border-bottom:1px solid var(--border);
+  text-align:right;
+}
+.table-wrap th:first-child,
+.table-wrap td:first-child{text-align:center}
+.table-body{max-height:360px;overflow:auto}
+
+.print-btn{
+  margin-top:12px;
+  background:#0f172a;
+  color:#fff;
+}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .result-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚗 Car Loan Calculator</h1>
+
+<div class="container">
+<div class="grid">
+
+<!-- LEFT -->
+<div class="card">
+
+<div class="section">
+<h3>Currency</h3>
+<select id="currency">
+  <option value="$">$ USD</option>
+  <option value="€">€ EUR</option>
+  <option value="£">£ GBP</option>
+  <option value="A$">A$ AUD</option>
+</select>
+</div>
+
+<div class="section">
+<h3>Vehicle Details</h3>
+<label>Car Price</label>
+<input id="price" value="30000">
+
+<label>Down Payment</label>
+<input id="down" value="3000">
+
+<label>Trade-In Value</label>
+<input id="trade" value="0">
+
+<label>Sales Tax (%)</label>
+<input id="tax" value="8">
+</div>
+
+<div class="section">
+<h3>Loan Details</h3>
+<label>Interest Rate (APR %)</label>
+<input id="rate" value="5.5">
+
+<label>Loan Term (Months)</label>
+<input id="months" value="60">
+
+<label>Additional Fees</label>
+<input id="fees" value="500">
+</div>
+
+<button class="primary" onclick="calculate()">Calculate Loan</button>
+<button class="secondary" onclick="location.reload()">Reset</button>
+
+</div>
+
+<!-- RIGHT -->
+<div class="card">
+
+<div class="result-grid">
+  <div class="result"><b id="monthly">–</b><small>Monthly Payment</small></div>
+  <div class="result"><b id="interest">–</b><small>Total Interest</small></div>
+  <div class="result"><b id="total">–</b><small>Total Cost</small></div>
+</div>
+
+<div class="chart-wrap">
+<canvas id="pie"></canvas>
+</div>
+
+<div class="chart-wrap">
+<canvas id="line"></canvas>
+</div>
+
+<button class="print-btn" onclick="window.print()">🖨️ Print Loan Summary</button>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Month</th>
+<th>Payment</th>
+<th>Interest</th>
+<th>Principal</th>
+<th>Balance</th>
+</tr>
+</thead>
+<tbody id="table" class="table-body"></tbody>
+</table>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<script>
+let pieChart,lineChart;
+
+function calculate(){
+const cur=document.getElementById("currency").value;
+const price=+priceEl.value;
+const down=+downEl.value;
+const trade=+tradeEl.value;
+const tax=+taxEl.value/100;
+const rate=+rateEl.value/100/12;
+const months=+monthsEl.value;
+const fees=+feesEl.value;
+
+let loan=(price+price*tax+fees)-(down+trade);
+let emi=loan*rate*Math.pow(1+rate,months)/(Math.pow(1+rate,months)-1);
+
+let bal=loan,totalInterest=0,rows="",balances=[];
+for(let m=1;m<=months;m++){
+  let interest=bal*rate;
+  let principal=emi-interest;
+  bal-=principal;
+  totalInterest+=interest;
+  balances.push(Math.max(bal,0));
+  rows+=`<tr>
+    <td>${m}</td>
+    <td>${cur}${emi.toFixed(0)}</td>
+    <td>${cur}${interest.toFixed(0)}</td>
+    <td>${cur}${principal.toFixed(0)}</td>
+    <td>${cur}${Math.max(bal,0).toFixed(0)}</td>
+  </tr>`;
+}
+
+monthly.textContent=cur+emi.toFixed(0);
+interest.textContent=cur+totalInterest.toFixed(0);
+total.textContent=cur+(loan+totalInterest).toFixed(0);
+table.innerHTML=rows;
+
+if(pieChart)pieChart.destroy();
+pieChart=new Chart(pie,{
+  type:"pie",
+  data:{
+    labels:["Principal","Interest"],
+    datasets:[{
+      data:[loan,totalInterest],
+      backgroundColor:["#2563eb","#ef4444"]
+    }]
+  }
+});
+
+if(lineChart)lineChart.destroy();
+lineChart=new Chart(line,{
+  type:"line",
+  data:{
+    labels:balances.map((_,i)=>"M"+(i+1)),
+    datasets:[{
+      label:"Remaining Balance",
+      data:balances,
+      borderColor:"#2563eb",
+      tension:.3
+    }]
+  },
+  options:{maintainAspectRatio:false}
+});
+}
+
+const priceEl=price;
+const downEl=down;
+const tradeEl=trade;
+const taxEl=tax;
+const rateEl=rate;
+const monthsEl=months;
+const feesEl=fees;
+
+calculate();
+</script>
+
+</body>
+</html>
