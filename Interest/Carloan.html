@@ -177,34 +177,39 @@ const extra=+extraEl.value;
 let loan=(price-down-trade)*(1+tax)+fees;
 let basePayment=loan*(apr*Math.pow(1+apr,term))/(Math.pow(1+apr,term)-1);
 
-let balance=loan,totalInterest=0,rows="",month=0;
+let balance=loan;
+let totalInterest=0;
+let rows="";
 let balances=[];
+let paymentCount=0;
 
-while(balance>0 && month<600){
-  month++;
+while(balance > 0.01 && paymentCount < 1000){
+  paymentCount++;
+
   let interest=balance*apr;
-  let payment=Math.min(basePayment+extra,balance+interest);
-  let principal=payment-interest;
+  let payment=Math.min(basePayment + extra, balance + interest);
+  let principal=payment - interest;
 
-  balance=Math.max(balance-principal,0);
-  totalInterest+=interest;
+  balance -= principal;
+  balance = Math.max(balance,0);
 
+  totalInterest += interest;
   balances.push(balance);
 
   rows+=`
-  <tr>
-    <td>${month}</td>
-    <td>${f.format(payment)}</td>
-    <td>${f.format(interest)}</td>
-    <td>${f.format(principal)}</td>
-    <td>${f.format(balance)}</td>
-  </tr>`;
+    <tr>
+      <td>${paymentCount}</td>
+      <td>${f.format(payment)}</td>
+      <td>${f.format(interest)}</td>
+      <td>${f.format(principal)}</td>
+      <td>${f.format(balance)}</td>
+    </tr>`;
 }
 
-mPay.textContent=f.format(basePayment+extra);
+mPay.textContent=f.format(basePayment + extra);
 tInt.textContent=f.format(totalInterest);
-tCost.textContent=f.format(loan+totalInterest);
-payoff.textContent="Month "+month;
+tCost.textContent=f.format(loan + totalInterest);
+payoff.textContent="Month " + paymentCount;
 table.innerHTML=rows;
 
 pieChart?.destroy();
@@ -214,8 +219,10 @@ pieChart=new Chart(pie,{
   type:"pie",
   data:{
     labels:["Principal","Interest"],
-    datasets:[{data:[loan,totalInterest],
-    backgroundColor:["#2563eb","#ef4444"]}]
+    datasets:[{
+      data:[loan,totalInterest],
+      backgroundColor:["#2563eb","#ef4444"]
+    }]
   }
 });
 
