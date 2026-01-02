@@ -39,7 +39,6 @@ h1{
   display:grid;
   grid-template-columns:380px 1fr;
   gap:24px;
-  align-items:stretch;
 }
 .card{
   background:var(--card);
@@ -49,17 +48,19 @@ h1{
   display:flex;
   flex-direction:column;
 }
-.section{margin-bottom:16px}
+.section{
+  margin-bottom:16px;
+}
 .section h3{
   margin:0 0 10px;
-  font-size:16px;
+  font-size:15px;
   color:var(--primary);
 }
 label{
   font-size:12px;
   color:var(--muted);
-  margin-bottom:4px;
   display:block;
+  margin-bottom:4px;
 }
 input,select{
   width:100%;
@@ -76,13 +77,13 @@ button{
   cursor:pointer;
 }
 .primary{background:var(--primary);color:#fff}
-.secondary{background:#eef2ff;margin-top:10px}
+.secondary{background:#eef2ff;margin-top:8px}
 
 .results{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:14px;
-  margin-bottom:16px;
+  margin-bottom:14px;
 }
 .result-box{
   background:#f8fafc;
@@ -90,53 +91,61 @@ button{
   padding:14px;
   text-align:center;
 }
-.result-box b{font-size:18px;display:block}
-.result-box small{font-size:12px;color:var(--muted)}
+.result-box b{
+  font-size:18px;
+  display:block;
+}
+.result-box small{
+  font-size:12px;
+  color:var(--muted);
+}
 
 .chart-row{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:16px;
-  margin-bottom:16px;
+  margin-bottom:14px;
 }
-.chart-wrap{height:260px}
+.chart-box{
+  height:220px;
+}
 
 .table-wrap{
   border:1px solid var(--border);
   border-radius:12px;
   overflow:hidden;
-  flex:1;
 }
-.table-wrap table{
+.table-scroll{
+  max-height:320px;
+  overflow:auto;
+}
+table{
   width:100%;
   border-collapse:collapse;
   font-size:13px;
 }
-.table-wrap thead{
+thead{
   background:#f1f5f9;
   position:sticky;
   top:0;
-  z-index:1;
+  z-index:2;
 }
-.table-wrap th, .table-wrap td{
+th,td{
   padding:8px;
   border-bottom:1px solid var(--border);
   text-align:right;
 }
-.table-wrap th:first-child,
-.table-wrap td:first-child{ text-align:center }
-.table-body{
-  max-height:360px;
-  overflow:auto;
-}
+th:first-child,td:first-child{text-align:center}
+tbody tr:nth-child(even){background:#fafafa}
 
 @media(max-width:900px){
   .grid{grid-template-columns:1fr}
   .chart-row{grid-template-columns:1fr}
+  .results{grid-template-columns:repeat(2,1fr)}
 }
 @media print{
-  button, select, input{display:none}
   body{background:#fff}
+  .section,.primary,.secondary{display:none}
 }
 </style>
 </head>
@@ -149,52 +158,63 @@ button{
 
 <!-- LEFT -->
 <div class="card">
+
 <div class="section">
 <h3>Currency</h3>
 <select id="currency">
-  <option value="$">USD ($)</option>
-  <option value="€">EUR (€)</option>
-  <option value="£">GBP (£)</option>
-  <option value="₹">INR (₹)</option>
+  <option value="$">$ USD</option>
+  <option value="€">€ EUR</option>
+  <option value="£">£ GBP</option>
 </select>
 </div>
 
 <div class="section">
 <h3>Vehicle Details</h3>
-<label>Car Price</label><input id="price" value="30000">
-<label>Down Payment</label><input id="down" value="3000">
-<label>Trade-In Value</label><input id="trade" value="0">
-<label>Sales Tax (%)</label><input id="tax" value="8">
+<label>Car Price</label>
+<input id="price" value="30000">
+<label>Down Payment</label>
+<input id="down" value="3000">
+<label>Trade-In Value</label>
+<input id="trade" value="0">
+<label>Sales Tax (%)</label>
+<input id="tax" value="8">
 </div>
 
 <div class="section">
 <h3>Loan Details</h3>
-<label>APR (%)</label><input id="apr" value="5.5">
-<label>Loan Term (Months)</label><input id="months" value="60">
-<label>Additional Fees</label><input id="fees" value="500">
+<label>APR (%)</label>
+<input id="apr" value="5.5">
+<label>Loan Term (Months)</label>
+<input id="months" value="60">
+<label>Additional Fees</label>
+<input id="fees" value="500">
 </div>
 
-<button class="primary" onclick="calculate()">Calculate Loan</button>
+<button class="primary" onclick="calc()">Calculate Loan</button>
 <button class="secondary" onclick="location.reload()">Reset</button>
+
 </div>
 
 <!-- RIGHT -->
 <div class="card">
+
 <div class="results">
-  <div class="result-box"><b id="rPay">–</b><small>Monthly Payment</small></div>
-  <div class="result-box"><b id="rInterest">–</b><small>Total Interest</small></div>
-  <div class="result-box"><b id="rTotal">–</b><small>Total Cost</small></div>
+  <div class="result-box"><b id="mPay">–</b><small>Monthly Payment</small></div>
+  <div class="result-box"><b id="iPaid">–</b><small>Total Interest</small></div>
+  <div class="result-box"><b id="tCost">–</b><small>Total Cost</small></div>
 </div>
 
 <div class="chart-row">
-  <div class="chart-wrap"><canvas id="pie"></canvas></div>
-  <div class="chart-wrap"><canvas id="line"></canvas></div>
+  <div class="chart-box"><canvas id="pie"></canvas></div>
+  <div class="chart-box"><canvas id="line"></canvas></div>
 </div>
 
-<button class="secondary" onclick="window.print()">🖨️ Print Loan Summary</button>
+<button class="secondary" onclick="window.print()">🖨 Print Loan Summary</button>
 
 <h3 style="margin:14px 0">Amortization Schedule</h3>
+
 <div class="table-wrap">
+<div class="table-scroll">
 <table>
 <thead>
 <tr>
@@ -205,72 +225,72 @@ button{
 <th>Balance</th>
 </tr>
 </thead>
-<tbody class="table-body" id="table"></tbody>
+<tbody id="table"></tbody>
 </table>
 </div>
+</div>
+
 </div>
 
 </div>
 </div>
 
 <script>
-let pieChart, lineChart;
+let pieChart,lineChart;
+function money(v,s){return s+v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,",");}
 
-function fmt(v){
-  const c=document.getElementById("currency").value;
-  return c+Math.round(v).toLocaleString();
+function calc(){
+const s=document.getElementById("currency").value;
+const price=+priceEl.value;
+const down=+downEl.value;
+const trade=+tradeEl.value;
+const tax=+taxEl.value/100;
+const fees=+feesEl.value;
+const apr=+aprEl.value/100/12;
+const n=+monthsEl.value;
+
+const loan=(price-down-trade)*(1+tax)+fees;
+const p=loan*apr/(1-Math.pow(1+apr,-n));
+
+let bal=loan,rows="",totalI=0,balances=[];
+for(let i=1;i<=n;i++){
+  const interest=bal*apr;
+  const principal=p-interest;
+  bal-=principal;
+  totalI+=interest;
+  balances.push(Math.max(bal,0));
+  rows+=`<tr>
+    <td>${i}</td>
+    <td>${money(p,s)}</td>
+    <td>${money(interest,s)}</td>
+    <td>${money(principal,s)}</td>
+    <td>${money(Math.max(bal,0),s)}</td>
+  </tr>`;
+}
+table.innerHTML=rows;
+
+mPay.textContent=money(p,s);
+iPaid.textContent=money(totalI,s);
+tCost.textContent=money(loan+totalI,s);
+
+if(pieChart)pieChart.destroy();
+pieChart=new Chart(pie,{
+ type:"pie",
+ data:{labels:["Principal","Interest"],
+ datasets:[{data:[loan,totalI],backgroundColor:["#2563eb","#ef4444"]}]}
+});
+
+if(lineChart)lineChart.destroy();
+lineChart=new Chart(line,{
+ type:"line",
+ data:{labels:balances.map((_,i)=>"M"+(i+1)),
+ datasets:[{data:balances,label:"Remaining Balance",borderColor:"#2563eb",tension:.3}]},
+ options:{responsive:true,maintainAspectRatio:false}
+});
 }
 
-function calculate(){
-  const P = +price.value - +down.value - +trade.value;
-  const taxAmt = P*(+tax.value/100);
-  const loan = P + taxAmt + +fees.value;
-  const r = (+apr.value/100)/12;
-  const n = +months.value;
-
-  const emi = loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-
-  let bal=loan, rows="", totalInterest=0, balances=[];
-  for(let m=1;m<=n;m++){
-    const interest=bal*r;
-    const principal=emi-interest;
-    bal-=principal;
-    totalInterest+=interest;
-    balances.push(Math.max(bal,0));
-    rows+=`<tr>
-      <td>${m}</td>
-      <td>${fmt(emi)}</td>
-      <td>${fmt(interest)}</td>
-      <td>${fmt(principal)}</td>
-      <td>${fmt(bal)}</td>
-    </tr>`;
-  }
-
-  rPay.textContent=fmt(emi);
-  rInterest.textContent=fmt(totalInterest);
-  rTotal.textContent=fmt(loan+totalInterest);
-  table.innerHTML=rows;
-
-  if(pieChart)pieChart.destroy();
-  pieChart=new Chart(pie,{
-    type:"pie",
-    data:{
-      labels:["Principal","Interest"],
-      datasets:[{data:[loan,totalInterest],backgroundColor:["#2563eb","#ef4444"]}]
-    }
-  });
-
-  if(lineChart)lineChart.destroy();
-  lineChart=new Chart(line,{
-    type:"line",
-    data:{
-      labels:balances.map((_,i)=>"M"+(i+1)),
-      datasets:[{data:balances,label:"Remaining Balance",borderColor:"#2563eb",tension:.3}]
-    },
-    options:{maintainAspectRatio:false}
-  });
-}
-calculate();
+const priceEl=price,downEl=down,tradeEl=trade,taxEl=tax,feesEl=fees,aprEl=apr,monthsEl=months;
+calc();
 </script>
 </body>
 </html>
